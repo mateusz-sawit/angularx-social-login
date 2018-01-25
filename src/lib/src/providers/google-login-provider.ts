@@ -1,16 +1,18 @@
-import { BaseLoginProvider } from '../entities/base-login-provider';
-import { SocialUser } from '../entities/user';
-import { LoginOpt } from '../auth.service';
+import {BaseLoginProvider} from '../entities/base-login-provider';
+import {SocialUser} from '../entities/user';
+import {LoginOpt} from '../auth.service';
 
 declare let gapi: any;
 
 export class GoogleLoginProvider extends BaseLoginProvider {
 
-  public static readonly PROVIDER_ID: string = "GOOGLE";
+  public static readonly PROVIDER_ID: string = 'GOOGLE';
 
   protected auth2: any;
 
-  constructor(private clientId: string, private opt: LoginOpt = {scope: 'email'}) { super(); }
+  constructor(private clientId: string, private opt: LoginOpt = {scope: 'email'}) {
+    super();
+  }
 
   initialize(): Promise<SocialUser> {
     return new Promise((resolve, reject) => {
@@ -42,7 +44,7 @@ export class GoogleLoginProvider extends BaseLoginProvider {
               }
             });
           });
-      });
+        });
     });
   }
 
@@ -88,6 +90,30 @@ export class GoogleLoginProvider extends BaseLoginProvider {
           resolve();
         }
       });
+    });
+  }
+
+  verifyStatus(): Promise<SocialUser> {
+    return new Promise((resolve, reject) => {
+      if (this.auth2.isSignedIn.get()) {
+        let user: SocialUser = new SocialUser();
+        let profile = this.auth2.currentUser.get().getBasicProfile();
+        let token = this.auth2.currentUser.get().getAuthResponse(true).access_token;
+        let backendToken = this.auth2.currentUser.get().getAuthResponse(true).id_token;
+
+        user.id = profile.getId();
+        user.name = profile.getName();
+        user.email = profile.getEmail();
+        user.photoUrl = profile.getImageUrl();
+        user.firstName = profile.getGivenName();
+        user.lastName = profile.getFamilyName();
+        user.authToken = token;
+        user.idToken = backendToken;
+        resolve(user);
+      }
+      else {
+        reject();
+      }
     });
   }
 

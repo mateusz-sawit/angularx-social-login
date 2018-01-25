@@ -23,7 +23,7 @@ export class FacebookLoginProvider extends BaseLoginProvider {
             autoLogAppEvents: true,
             cookie: true,
             xfbml: true,
-            version: 'v2.9'
+            version: 'v2.11'
           });
           // FB.AppEvents.logPageView(); #FIX for #18
 
@@ -79,5 +79,32 @@ export class FacebookLoginProvider extends BaseLoginProvider {
       });
     });
   }
+
+  verifyStatus(): Promise<SocialUser> {
+    return new Promise((resolve, reject) => {
+      FB.getLoginStatus(function (response: any) {
+        if (response.status === 'connected') {
+          let authResponse = response.authResponse;
+          FB.api('/me?fields=name,email,picture,first_name,last_name', (fbUser: any) => {
+            let user: SocialUser = new SocialUser();
+
+            user.id = fbUser.id;
+            user.name = fbUser.name;
+            user.email = fbUser.email;
+            user.photoUrl = 'https://graph.facebook.com/' + fbUser.id + '/picture?type=normal';
+            user.firstName = fbUser.first_name;
+            user.lastName = fbUser.last_name;
+            user.authToken = authResponse.accessToken;
+
+            resolve(user);
+          });
+        }
+        else {
+          reject();
+        }
+      });
+    });
+  }
+
 
 }

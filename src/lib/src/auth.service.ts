@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 
-import { Observable, BehaviorSubject } from 'rxjs';
+import {Observable, BehaviorSubject} from 'rxjs';
 
-import { LoginProvider } from './entities/login-provider';
-import { SocialUser } from './entities/user';
+import {LoginProvider} from './entities/login-provider';
+import {SocialUser} from './entities/user';
 
 export interface AuthServiceConfigItem {
   id: string;
@@ -102,6 +102,26 @@ export class AuthService {
 
             this._user = null;
             this._authState.next(null);
+          });
+        } else {
+          reject(AuthService.ERR_LOGIN_PROVIDER_NOT_FOUND);
+        }
+      }
+    });
+  }
+
+  verifyStatus(): Promise<SocialUser> {
+    return new Promise((resolve, reject) => {
+      if (!this._user) {
+        reject(AuthService.ERR_NOT_LOGGED_IN);
+      } else {
+        let providerId = this._user.provider;
+        let providerObject = this.providers.get(providerId);
+        if (providerObject) {
+          providerObject.verifyStatus().then((user: SocialUser) => {
+            resolve(user);
+          }, () => {
+            reject(AuthService.ERR_NOT_LOGGED_IN);
           });
         } else {
           reject(AuthService.ERR_LOGIN_PROVIDER_NOT_FOUND);

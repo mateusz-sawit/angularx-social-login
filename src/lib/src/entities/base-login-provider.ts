@@ -8,6 +8,7 @@ export abstract class BaseLoginProvider implements LoginProvider {
   abstract initialize(): Promise<SocialUser>;
   abstract signIn(): Promise<SocialUser>;
   abstract signOut(): Promise<any>;
+  abstract verifyStatus(): Promise<SocialUser>;
 
   loadScript(id: string, src: string, onload: any): void {
       if (document.getElementById(id)) { return; }
